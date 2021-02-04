@@ -93,6 +93,42 @@ dat$Covid.tot.i = round(dat$Covid.tot.i,0)
 dat$Open = apply(dat[,7:18], 1, function(idx) which.max(tabulate(idx)))
 dat$Open = ifelse(dat$Date < "2020-03-26", 4, dat$Open)
 
+# Variable Weekend
+dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday" | dat$Holiday==1, 1, 0)
+
+
+# Keep Weekend Data
+# dat <- dat[ which(dat$Weekend==1),]
+
+
+# Simple Plot
+ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
+
+# Differenced
+d.data = data.frame(
+  Departures = diff(dat$Departures)
+  )
+ggplot(d.data, aes(x=1:nrow(d.data), y=Departures)) +   geom_line() +  xlab("") + theme_bw() 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Empty (factor)
 dat$Empty.f = as.factor(ifelse(dat$Empty<0, "Arrivals", "Departures"))
@@ -139,5 +175,3 @@ ggplot() +
 
   
   theme_bw() 
-
-

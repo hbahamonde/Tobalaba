@@ -102,12 +102,13 @@ dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday
 
 
 # Keep between dates
-dat = dat[ which(dat$Date<"2020-07-28"),]
+# dat = dat[ which(dat$Date<"2020-07-28"),] # Fase 1
+ dat = dat[ which(dat$Date<"2020-09-14"),] # Fase 1 y 2
 # Simple Plot
 ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
 
 # RDD
-dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1)
+dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1) # lockdown begins
 p_load(rddtools)
 data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"), covar = dat$Covid.tot.i)
 data = na.omit(data)

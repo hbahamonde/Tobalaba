@@ -109,9 +109,9 @@ ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open)))
 # RDD
 dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1)
 p_load(rddtools)
-data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"))
+data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"), covar = dat$Covid.tot.i)
 data = na.omit(data)
-rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "separate")
+rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "same", covariates = TRUE)
 rdd_mod
 
 

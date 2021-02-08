@@ -110,6 +110,9 @@ dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday
 dat = dat[ which(dat$Date<"2020-09-14"),] # Fase 1 y 2
 # Simple Plot
 ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
+# save state file
+p_load(foreign)
+write.dta(dat, paste(getwd(),"dat.dta", sep = "/"))
 
 # RDD
 dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1) # lockdown begins

@@ -107,7 +107,7 @@ dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday
 
 # Keep between dates
 # dat = dat[ which(dat$Date<"2020-07-28"),] # Fase 1
- dat = dat[ which(dat$Date<"2020-09-14"),] # Fase 1 y 2
+dat = dat[ which(dat$Date<"2020-09-14"),] # Fase 1 y 2
 # Simple Plot
 ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
 

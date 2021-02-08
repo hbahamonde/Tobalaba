@@ -101,16 +101,18 @@ dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday
 # dat <- dat[ which(dat$Weekend==1),]
 
 
+# Keep between dates
+dat = dat[ which(dat$Date<"2020-07-28"),]
 # Simple Plot
 ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
 
-# Differenced
-d.data = data.frame(
-  Departures = diff(dat$Departures)
-  )
-ggplot(d.data, aes(x=1:nrow(d.data), y=Departures)) +   geom_line() +  xlab("") + theme_bw() 
-
-
+# RDD
+dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1)
+p_load(rddtools)
+data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"))
+data = na.omit(data)
+rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "separate")
+rdd_mod
 
 
 

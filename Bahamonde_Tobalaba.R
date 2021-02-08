@@ -87,6 +87,10 @@ dat$Covid.tot.i = na_interpolation(dat$Covid.tot)
 dat$Covid.tot.i = ifelse(dat$Date < "2020-03-30", 0, dat$Covid.tot.i) # delete prior info
 dat$Covid.tot.i = round(dat$Covid.tot.i,0)
 
+# Multiple imputation for Departures vector // TEMPORARY (remove after getting complete dataset)
+p_load(imputeTS)
+dat$Departures.i = na_interpolation(dat$Departures)
+dat$Departures.i = round(dat$Departures.i,0)
 # Variable "Open" (how open the rich parte of the city is)
 # dat$Open = round(rowMeans(dat[,7:18], na.rm=TRUE),1)
 # dat$Open[is.na(dat$Open)] <- 4

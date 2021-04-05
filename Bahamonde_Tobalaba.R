@@ -185,3 +185,11 @@ ggplot() +
 
   
   theme_bw() 
+
+
+
+#### Transportation Analyses
+
+# https://spatial.blog.ryerson.ca/2019/09/03/transportation-flow-mapping-using-r/
+# https://rstudio-pubs-static.s3.amazonaws.com/259095_2f8cb24b43284692a8af916bd447931d.html
+# https://servicios.dgac.gob.cl/portal_consulta_aeronaves/

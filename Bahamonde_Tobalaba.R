@@ -11,50 +11,21 @@ if (!require("pacman")) install.packages("pacman"); library(pacman)
 ##############################
 
 
-# Comunas
-comunas = c("Colina",	"La Reina",	"Las Condes",	"Lo Barnechea",	"Providencia",	"Vitacura")
-
 # Load Covid Data
 p_load(rio, tidyverse)
 covid.d = rio::import(file = 'https://github.com/hbahamonde/Datos-COVID19/raw/master/output/producto1/Covid-19_std.csv',which = 1)
 
-covid.d <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[1,1] | 
-                            covid.d$Comuna == data.frame(comunas)[2,1] | 
-                            covid.d$Comuna == data.frame(comunas)[3,1] | 
-                            covid.d$Comuna == data.frame(comunas)[4,1] | 
-                            covid.d$Comuna == data.frame(comunas)[5,1] | 
-                            covid.d$Comuna == data.frame(comunas)[6,1]), ]
+
+covid.d <- covid.d[ which(covid.d$Region == "Metropolitana"), ]
+
 
 # keep columns
 p_load(dplyr)
-covid.d = covid.d %>% select(Comuna, Fecha,`Casos confirmados`)
+covid.d = covid.d %>% dplyr::select("Casos confirmados", Comuna, Fecha,"Casos confirmados")
 
 # Change column names
 colnames(covid.d)[colnames(covid.d)=="Fecha"] <- "Date"
 colnames(covid.d)[colnames(covid.d)=="Casos confirmados"] <- "Covid"
-
-# Construct datasets for each municipality
-covid.d.Colina <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[1,1]), ]; covid.d.Colina <- covid.d.Colina[,2:3]; colnames(covid.d.Colina)[colnames(covid.d.Colina)=="Covid"] <- "Covid.Colina";rownames(covid.d.Colina)<-NULL
-
-covid.d.La.Reina <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[2,1]), ]; covid.d.La.Reina <- covid.d.La.Reina[,2:3]; colnames(covid.d.La.Reina)[colnames(covid.d.La.Reina)=="Covid"] <- "Covid.La.Reina";rownames(covid.d.La.Reina)<-NULL
-
-covid.d.Las.Condes <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[3,1]), ]; covid.d.Las.Condes <- covid.d.Las.Condes[,2:3]; colnames(covid.d.Las.Condes)[colnames(covid.d.Las.Condes)=="Covid"] <- "Covid.Las.Condes";rownames(covid.d.Las.Condes)<-NULL
-
-covid.d.Lo.Barnechea <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[4,1]), ]; covid.d.Lo.Barnechea <- covid.d.Lo.Barnechea[,2:3]; colnames(covid.d.Lo.Barnechea)[colnames(covid.d.Lo.Barnechea)=="Covid"] <- "Covid.Lo.Barnechea";rownames(covid.d.Lo.Barnechea)<-NULL
-
-covid.d.Providencia <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[5,1]), ]; covid.d.Providencia <- covid.d.Providencia[,2:3]; colnames(covid.d.Providencia)[colnames(covid.d.Providencia)=="Covid"] <- "Covid.Providencia";rownames(covid.d.Providencia)<-NULL
-
-covid.d.Vitacura <- covid.d[ which(covid.d$Comuna == data.frame(comunas)[6,1]), ]; covid.d.Vitacura <- covid.d.Vitacura[,2:3]; colnames(covid.d.Vitacura)[colnames(covid.d.Vitacura)=="Covid"] <- "Covid.Vitacura";rownames(covid.d.Vitacura)<-NULL
-
-# merge
-m1 = merge(covid.d.Colina,covid.d.La.Reina, by.x = "Date")
-m2 = merge(covid.d.Las.Condes,covid.d.Lo.Barnechea, by.x = "Date")
-m3 = merge(covid.d.Providencia,covid.d.Vitacura, by.x = "Date")
-m12 = merge(m1,m2)
-covid.d = merge(m12,m3)
-
-# total covid ABC1
-covid.d$Covid.tot = rowSums(covid.d[2]+covid.d[3]+covid.d[4]+covid.d[5]+covid.d[6]+covid.d[7])
 
 # format vars
 covid.d$Date = as.Date(covid.d$Date)
@@ -67,16 +38,42 @@ covid.d$Date = as.Date(covid.d$Date)
 
 # import dataset
 p_load(rio, tidyverse)
-dat = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/dataset.xlsx',which = 1)
+airport = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/data_desp_at_georef.xls',which = 1)
+
+# colnames
+colnames(airport)[colnames(airport)=="OPERACIÓN"] <- "operation"
+colnames(airport)[colnames(airport)=="Matrícula"] <- "plate"
+colnames(airport)[colnames(airport)=="AERONAVE"] <- "aircraft"
+colnames(airport)[colnames(airport)=="FECHA"] <- "date"
+colnames(airport)[colnames(airport)=="Hora Local"] <- "time"
+colnames(airport)[colnames(airport)=="Origen/Destino"] <- "place"
+colnames(airport)[colnames(airport)=="Latitud"] <- "lat"
+colnames(airport)[colnames(airport)=="Longitud"] <- "long"
+
+# drop NA
+p_load(DataCombine)
+airport = DropNA(airport, Var = c("lat", "long"), message = F)
 
 # format vars
-dat$Day = as.factor(dat$Day)
-dat$Arrivals = as.numeric(dat$Arrivals)
-dat$Departures = as.numeric(dat$Departures)
-dat$Date = as.Date(dat$Date)
+airport$date = as.Date(airport$date)
 
-# difference
-dat$Empty = dat$Departures - dat$Arrivals
+
+
+
+p_load(sp)
+
+test = airport$lat %>%
+  sub('º', 'd', .) %>%
+  sub("'", "'", .) %>% 
+  sub("''", "''", .) %>%
+  sub(" ", "", .) 
+  
+
+as.numeric(sp::char2dms(airport$lat))
+
+sp::char2dms(test, chd = "d", chm = "'", chs = "''")
+
+
 
 # Merge with Covid Data
 dat = merge(dat,covid.d, by.y = "Date", all=T)

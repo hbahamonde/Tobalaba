@@ -33,6 +33,7 @@ covid.d$Date = as.Date(covid.d$Date)
 ############################## 
 # AIRPORT
 ##############################
+if (!require("pacman")) install.packages("pacman"); library(pacman) 
 
 # Load the airport data
 
@@ -57,21 +58,68 @@ airport = DropNA(airport, Var = c("lat", "long"), message = F)
 # format vars
 airport$date = as.Date(airport$date)
 
+# p_load(sp)
+#
+#test = airport$lat %>%
+#  sub('º', "d", .) %>%
+#  sub("'", "'", .) %>% 
+#  sub("''", "\''", .) 
+#
+# as.numeric(sp::char2dms("33d 40' 36'' S", chd = "d", chm = "'", chs = "\''"))
+
+# function to convert to long and lat
+## https://stackoverflow.com/a/58646642/6079926
+angle2dec <- function(angle) {
+  angle <- as.character(angle)
+  angle <- ifelse(grepl("S|W", angle), paste0("-", angle), angle)
+  angle <- trimws(gsub("[^- +.0-9]", "", angle))
+  x <- do.call(rbind, strsplit(angle, split=' '))
+  x <- apply(x, 1L, function(y) {
+    y <- as.numeric(y)
+    (abs(y[1]) + y[2]/60 + y[3]/3600) * sign(y[1])
+  })
+  return(x)
+}
+
+airport$lat.2 = data.frame(unlist(t(data.frame(lapply(airport$lat, angle2dec)))))[,1]
+airport$long.2 = data.frame(unlist(t(data.frame(lapply(airport$long, angle2dec)))))[,1]
 
 
 
-p_load(sp)
+# Toy map
+## https://github.com/dkahle/ggmap
+# if(!requireNamespace("devtools")) install.packages("devtools")
+# devtools::install_github("dkahle/ggmap")
+library("ggmap")
 
-test = airport$lat %>%
-  sub('º', 'd', .) %>%
-  sub("'", "'", .) %>% 
-  sub("''", "''", .) %>%
-  sub(" ", "", .) 
-  
+chile <- c(left = -75, bottom = -56, right = -68, top = -17)
 
-as.numeric(sp::char2dms(airport$lat))
+get_stamenmap(chile, zoom = 10, maptype = "toner-background") %>% ggmap() 
 
-sp::char2dms(test, chd = "d", chm = "'", chs = "''")
+
+qmplot(long.2, lat.2, data = airport, maptype = "toner-lite", color = I("red"))
+
+
+
+
+qmplot(lon, lat, data = violent_crimes, maptype = "toner-lite", color = I("red"))
+
+
+p_load(dplyr,forcats)
+
+# define helper
+`%notin%` <- function(lhs, rhs) !(lhs %in% rhs)
+violent_crimes <- crime %>% 
+  filter(
+    offense %notin% c("auto theft", "theft", "burglary"),
+    -95.39681 <= lon & lon <= -95.34188,
+    29.73631 <= lat & lat <=  29.78400
+  ) %>% 
+  mutate(
+    offense = fct_drop(offense),
+    offense = fct_relevel(offense, c("robbery", "aggravated assault", "rape", "murder"))
+  )
+
 
 
 
@@ -190,3 +238,4 @@ ggplot() +
 # https://spatial.blog.ryerson.ca/2019/09/03/transportation-flow-mapping-using-r/
 # https://rstudio-pubs-static.s3.amazonaws.com/259095_2f8cb24b43284692a8af916bd447931d.html
 # https://servicios.dgac.gob.cl/portal_consulta_aeronaves/
+# https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf

@@ -84,41 +84,20 @@ angle2dec <- function(angle) {
 airport$lat.2 = data.frame(unlist(t(data.frame(lapply(airport$lat, angle2dec)))))[,1]
 airport$long.2 = data.frame(unlist(t(data.frame(lapply(airport$long, angle2dec)))))[,1]
 
+# jitter
+airport$lat.2 = jitter(airport$lat.2, 3)
+airport$long.2 = jitter(airport$long.2, 3)
+
 
 
 # Toy map
 ## https://github.com/dkahle/ggmap
 # if(!requireNamespace("devtools")) install.packages("devtools")
 # devtools::install_github("dkahle/ggmap")
-library("ggmap")
-
-chile <- c(left = -75, bottom = -56, right = -68, top = -17)
-
-get_stamenmap(chile, zoom = 10, maptype = "toner-background") %>% ggmap() 
+p_load("ggmap")
 
 
-qmplot(long.2, lat.2, data = airport, maptype = "toner-lite", color = I("red"))
-
-
-
-
-qmplot(lon, lat, data = violent_crimes, maptype = "toner-lite", color = I("red"))
-
-
-p_load(dplyr,forcats)
-
-# define helper
-`%notin%` <- function(lhs, rhs) !(lhs %in% rhs)
-violent_crimes <- crime %>% 
-  filter(
-    offense %notin% c("auto theft", "theft", "burglary"),
-    -95.39681 <= lon & lon <= -95.34188,
-    29.73631 <= lat & lat <=  29.78400
-  ) %>% 
-  mutate(
-    offense = fct_drop(offense),
-    offense = fct_relevel(offense, c("robbery", "aggravated assault", "rape", "murder"))
-  )
+qmplot(long.2, lat.2, geom = "polygon",zoom = 6, data = airport, maptype = "toner-lite", facets = NULL, size = I(0.5), alpha = I(0.5), color = I("red"))
 
 
 

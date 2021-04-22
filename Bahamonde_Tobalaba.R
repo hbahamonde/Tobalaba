@@ -85,8 +85,8 @@ airport$lat.2 = data.frame(unlist(t(data.frame(lapply(airport$lat, angle2dec))))
 airport$long.2 = data.frame(unlist(t(data.frame(lapply(airport$long, angle2dec)))))[,1]
 
 # jitter
-airport$lat.2 = jitter(airport$lat.2, 3)
-airport$long.2 = jitter(airport$long.2, 3)
+airport$lat.2 = jitter(airport$lat.2, 6)
+airport$long.2 = jitter(airport$long.2, 6)
 
 
 
@@ -97,7 +97,10 @@ airport$long.2 = jitter(airport$long.2, 3)
 p_load("ggmap")
 
 
-qmplot(long.2, lat.2, geom = "polygon",zoom = 6, data = airport, maptype = "toner-lite", facets = NULL, size = I(0.5), alpha = I(0.5), color = I("red"))
+airport.centro = airport[ which(airport$lat.2 <= -30 & airport$lat.2>= -40 & airport$long.2 >= -73 & airport$long.2 <= -71),]
+
+
+qmplot(long.2, lat.2, geom = "density2d",zoom = 8, data = airport.centro, maptype = "toner-lite", facets = NULL, size = I(1), alpha = I(1), color = I("red"))
 
 
 

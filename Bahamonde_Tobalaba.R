@@ -110,12 +110,7 @@ qmplot(long.2, lat.2,
        color = I("red"),
        legend = "topleft",
        facets = NULL
-       ) #+ 
-  stat_density_2d(aes(fill = ..level..), 
-                  #geom = "polygon", 
-                  alpha = I(0.2), 
-                  #color = I("red")
-                  color = NA) 
+       )
 
 
 

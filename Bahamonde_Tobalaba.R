@@ -5,6 +5,7 @@ cat("\014")
 rm(list=ls())
 if (!require("pacman")) install.packages("pacman"); library(pacman) 
 
+# setwd("/Users/hectorbahamonde/research/Tobalaba")
 
 ############################## 
 # COVID
@@ -21,14 +22,19 @@ covid.d <- covid.d[ which(covid.d$Region == "Metropolitana"), ]
 
 # keep columns
 p_load(dplyr)
-covid.d = covid.d %>% dplyr::select("Casos confirmados", Comuna, Fecha,"Casos confirmados")
+covid.d = covid.d %>% dplyr::select("Casos confirmados", Comuna, Fecha,"Casos confirmados", "Codigo comuna")
 
 # Change column names
 colnames(covid.d)[colnames(covid.d)=="Fecha"] <- "Date"
 colnames(covid.d)[colnames(covid.d)=="Casos confirmados"] <- "Covid"
+colnames(covid.d)[colnames(covid.d)=="Codigo comuna"] <- "mun.cod"
 
 # format vars
 covid.d$Date = as.Date(covid.d$Date)
+
+# drop NA's in comuna
+covid.d <- na.omit(covid.d)
+
 
 ############################## 
 # AIRPORT
@@ -39,21 +45,22 @@ if (!require("pacman")) install.packages("pacman"); library(pacman)
 
 # import dataset
 p_load(rio, tidyverse)
-airport = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/data_desp_at_georef.xls',which = 1)
+airport = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/airport.xls',which = 1)
 
 # colnames
 colnames(airport)[colnames(airport)=="OPERACIÓN"] <- "operation"
 colnames(airport)[colnames(airport)=="Matrícula"] <- "plate"
 colnames(airport)[colnames(airport)=="AERONAVE"] <- "aircraft"
-colnames(airport)[colnames(airport)=="FECHA"] <- "date"
+colnames(airport)[colnames(airport)=="FECHA"] <- "Date"
 colnames(airport)[colnames(airport)=="Hora Local"] <- "time"
 colnames(airport)[colnames(airport)=="Origen/Destino"] <- "place"
 colnames(airport)[colnames(airport)=="Latitud"] <- "lat"
 colnames(airport)[colnames(airport)=="Longitud"] <- "long"
+colnames(airport)[colnames(airport)=="Código Comuna"] <- "mun.cod"
 
 # drop NA
 p_load(DataCombine)
-airport = DropNA(airport, Var = c("lat", "long"), message = F)
+airport = DropNA(airport, Var = c("lat", "long", "mun.cod"), message = F)
 
 # format vars
 airport$date = as.Date(airport$date)
@@ -90,14 +97,114 @@ airport$long.2 = jitter(airport$long.2, 7)
 
 
 
+# Merge with Covid Data
+dat = merge(airport,covid.d, by.y = c("Date","mun.cod"), all=T)
+p_load(dplyr)
+dat = dat %>% dplyr::select(-c("Pasaporte Sanitario", "lat", "long", "Nota", "time"))
+colnames(dat)[colnames(dat)=="lat.2"] <- "Latitude"
+colnames(dat)[colnames(dat)=="long.2"] <- "Longitude"
+
+
+
+############################## 
+# Fase base (paso)
+##############################
+
+# Load Fase Data
+p_load(rio, tidyverse)
+paso.d = rio::import(file = 'https://raw.githubusercontent.com/hbahamonde/Datos-COVID19/master/output/producto74/paso_a_paso_std.csv',which = 1)
+
+
+# format vars
+paso.d$Fecha = as.Date(paso.d$Fecha)
+
+# Select columns
+p_load(dplyr)
+paso.d = paso.d %>% dplyr::select(c("codigo_comuna", "Paso", "Fecha", "zona"))
+colnames(paso.d)[colnames(paso.d)=="Fecha"] <- "Date"
+colnames(paso.d)[colnames(paso.d)=="codigo_comuna"] <- "mun.cod"
+
+
+############################## 
+# Confinamiento base
+##############################
+
+# Before "Paso a Paso" there was "Cuarentena" (total lockdown) which equals Paso == 1 in "Paso a Paso."
+# https://es.wikipedia.org/wiki/Confinamiento_por_la_pandemia_de_COVID-19_en_Chile
+
+
+
+
+
+confinamiento.Date = data.frame(Date = seq(as.Date("2020/1/1"), as.Date(min(paso.d$Date))-1, "days"))
+confinamiento.mun.cod = data.frame(mun.cod = unique(covid.d$mun.cod))
+confinamiento = merge(confinamiento.Date,confinamiento.mun.cod,all=T)
+
+# p_load("openxlsx")
+# write.xlsx(confinamiento, "/Users/hectorbahamonde/research/Tobalaba/confinamiento.xlsx")
+
+data.frame(unique(data.frame(data.table(covid.d$Comuna, covid.d$mun.cod))))
+
+
+#### DESDE AQUI
+
+d1 = confinamiento %>% # Independencia
+  filter(mun.cod == 13108) %>%
+  filter(Date >= "2020-03-27" & Date <= "2020-04-03" | # 27 de marzo de 2020-3 de abril de 2020
+         Date >= "2020-04-24" , Date <= "2020-09-21" # 24 de abril de 2020-21 de septiembre de 2020
+         ) %>% 
+  mutate(Paso = 1)
+
+d2 = confinamiento %>% # Las Condes
+  filter(mun.cod == 13114) %>%
+  filter(Date >= "2020-03-27" & Date <= "2020-04-17" | # 27 de marzo de 2020-17 de abril de 2020
+           Date >= "2020-05-16" , Date <= "2020-07-28" # 16 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d3 = confinamiento %>% # Lo Barnechea
+  filter(mun.cod == 13115) %>%
+  filter(Date >= "" & Date <= "" | # FECHA AQUI WIKIPEDIA
+           Date >= "" , Date <= "" # FECHA AQUI WIKIPEDIA
+  ) %>% 
+  mutate(Paso = 1)
+
+
+
+
+#### HASTA AQUI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Merge with Covid and Airport Data
+df = merge(dat,paso.d, by.y = c("Date","mun.cod"), all=T)
+#df = data.frame(na.omit(dat))
+df$Paso = as.factor(df$Paso)
+
+
+############################## 
 # Toy map
+##############################
+
+
 ## https://github.com/dkahle/ggmap
 # if(!requireNamespace("devtools")) install.packages("devtools")
 # devtools::install_github("dkahle/ggmap")
 p_load("ggmap")
 
 
-airport.centro = airport[ which(airport$lat.2 <= -29 & airport$lat.2>= -36 & airport$long.2 >= -73 & airport$long.2 <= -69),]
+airport.centro = dat[ which(dat$Latitude <= -29 & dat$Latitude>= -36 & dat$Longitude >= -73 & dat$Longitude <= -69),]
 
 
 qmplot(long.2, lat.2, 
@@ -110,13 +217,30 @@ qmplot(long.2, lat.2,
        color = I("red"),
        legend = "topleft",
        facets = NULL
-       )
+)
 
 
 
 
-# Merge with Covid Data
-dat = merge(dat,covid.d, by.y = "Date", all=T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Multiple imputation for covid vector
 p_load(imputeTS)
@@ -158,6 +282,7 @@ data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"), cov
 data = na.omit(data)
 rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "same", covariates = TRUE)
 rdd_mod
+
 
 
 

@@ -92,8 +92,8 @@ airport$lat.2 = data.frame(unlist(t(data.frame(lapply(airport$lat, angle2dec))))
 airport$long.2 = data.frame(unlist(t(data.frame(lapply(airport$long, angle2dec)))))[,1]
 
 # jitter
-airport$lat.2 = jitter(airport$lat.2, 7)
-airport$long.2 = jitter(airport$long.2, 7)
+#airport$lat.2 = jitter(airport$lat.2, 7)
+#airport$long.2 = jitter(airport$long.2, 7)
 
 
 
@@ -114,15 +114,17 @@ colnames(dat)[colnames(dat)=="long.2"] <- "Longitude"
 p_load(rio, tidyverse)
 paso.d = rio::import(file = 'https://raw.githubusercontent.com/hbahamonde/Datos-COVID19/master/output/producto74/paso_a_paso_std.csv',which = 1)
 
-
 # format vars
 paso.d$Fecha = as.Date(paso.d$Fecha)
 
 # Select columns
 p_load(dplyr)
-paso.d = paso.d %>% dplyr::select(c("codigo_comuna", "Paso", "Fecha", "zona"))
+paso.d = paso.d %>% dplyr::select(c("codigo_comuna", "Paso", "Fecha"))
 colnames(paso.d)[colnames(paso.d)=="Fecha"] <- "Date"
 colnames(paso.d)[colnames(paso.d)=="codigo_comuna"] <- "mun.cod"
+
+# delete duplicates
+paso.d = paso.d[!duplicated(paso.d[c("Date", "mun.cod")]),]
 
 
 ############################## 
@@ -132,27 +134,16 @@ colnames(paso.d)[colnames(paso.d)=="codigo_comuna"] <- "mun.cod"
 # Before "Paso a Paso" there was "Cuarentena" (total lockdown) which equals Paso == 1 in "Paso a Paso."
 # https://es.wikipedia.org/wiki/Confinamiento_por_la_pandemia_de_COVID-19_en_Chile
 
-
-
-
-
 confinamiento.Date = data.frame(Date = seq(as.Date("2020/1/1"), as.Date(min(paso.d$Date))-1, "days"))
 confinamiento.mun.cod = data.frame(mun.cod = unique(covid.d$mun.cod))
 confinamiento = merge(confinamiento.Date,confinamiento.mun.cod,all=T)
 
-# p_load("openxlsx")
-# write.xlsx(confinamiento, "/Users/hectorbahamonde/research/Tobalaba/confinamiento.xlsx")
-
-data.frame(unique(data.frame(data.table(covid.d$Comuna, covid.d$mun.cod))))
-
-
-#### DESDE AQUI
-
+#### Collect data prior to Paso a Paso (plan "Confinamiento").
 d1 = confinamiento %>% # Independencia
   filter(mun.cod == 13108) %>%
   filter(Date >= "2020-03-27" & Date <= "2020-04-03" | # 27 de marzo de 2020-3 de abril de 2020
-         Date >= "2020-04-24" , Date <= "2020-09-21" # 24 de abril de 2020-21 de septiembre de 2020
-         ) %>% 
+           Date >= "2020-04-24" , Date <= "2020-09-21" # 24 de abril de 2020-21 de septiembre de 2020
+  ) %>% 
   mutate(Paso = 1)
 
 d2 = confinamiento %>% # Las Condes
@@ -164,38 +155,334 @@ d2 = confinamiento %>% # Las Condes
 
 d3 = confinamiento %>% # Lo Barnechea
   filter(mun.cod == 13115) %>%
-  filter(Date >= "" & Date <= "" | # FECHA AQUI WIKIPEDIA
-           Date >= "" , Date <= "" # FECHA AQUI WIKIPEDIA
+  filter(Date >= "2020-03-26" & Date <= "2020-04-13" | # 26 de marzo de 2020-13 de abril de 2020
+           Date >= "2020-05-15" , Date <= "2020-07-28" # 15 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d4 = confinamiento %>% # Vitacura
+  filter(mun.cod == 13132) %>%
+  filter(Date >= "2020-03-26" & Date <= "2020-04-13" | # 26 de marzo de 2020-13 de abril de 2020
+           Date >= "2020-05-15" , Date <= "2020-07-28" # 15 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d5 = confinamiento %>% # Nunoa
+  filter(mun.cod == 13120) %>%
+  filter(Date >= "2020-03-26" & Date <= "2020-05-07" | # 26 de marzo de 2020-7 de mayo de 2020
+           Date >= "2020-05-15" , Date <= "2020-07-28" # 15 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d6 = confinamiento %>% # Providencia
+  filter(mun.cod == 13123) %>%
+  filter(Date >= "2020-03-26" & Date <= "2020-04-13" | # 26 de marzo de 2020-13 de abril de 2020
+           Date >= "2020-05-15" , Date <= "2020-08-09" # 15 de mayo de 2020-9 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d7 = confinamiento %>% # Santiago
+  filter(mun.cod == 13101) %>%
+  filter(Date >= "2020-03-26" & Date <= "2020-04-13" # 26 de marzo de 2020-17 de agosto de 2020 
+  ) %>% 
+  mutate(Paso = 1)
+
+d8 = confinamiento %>% # Puente Alto
+  filter(mun.cod == 13201) %>%
+  filter(Date >= "2020-04-09" & Date <= "2020-09-28" # 9 de abril de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d9 = confinamiento %>% # El Bosque
+  filter(mun.cod == 13105) %>%
+  filter(Date >= "2020-04-16" & Date <= "2020-09-21" # 16 de abril de 2020-21 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d10 = confinamiento %>% # San Bernardo
+  filter(mun.cod == 13401) %>%
+  filter(Date >= "2020-04-16" & Date <= "2020-09-14" # 16 de abril de 2020-14 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d11 = confinamiento %>% # Pedro Aguirre Cerda
+  filter(mun.cod == 13121) %>%
+  filter(Date >= "2020-04-23" & Date <= "2020-08-31" # 23 de abril de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d12 = confinamiento %>% # Quinta Normal
+  filter(mun.cod == 13126) %>%
+  filter(Date >= "2020-04-23" & Date <= "2020-09-28" # 23 de abril de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d13 = confinamiento %>% # Estacion Central
+  filter(mun.cod == 13106) %>%
+  filter(Date >= "2020-04-30" & Date <= "2020-08-17" # 30 de abril de 2020-17 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d14 = confinamiento %>% # La Pintana 
+  filter(mun.cod == 13112) %>%
+  filter(Date >= "2020-04-30" & Date <= "2020-09-28" # 30 de abril de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d15 = confinamiento %>% # San Ramon 
+  filter(mun.cod == 13131) %>%
+  filter(Date >= "2020-04-30" & Date <= "2020-09-07" # 30 de abril de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d16 = confinamiento %>% # Cerrillos
+  filter(mun.cod == 13102) %>%
+  filter(Date >= "2020-05-05" & Date <= "2020-08-31" # 5 de mayo de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d17 = confinamiento %>% # Quilicura
+  filter(mun.cod == 13125) %>%
+  filter(Date >= "2020-05-05" & Date <= "2020-09-14" # 5 de mayo de 2020-14 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d18 = confinamiento %>% # Recoleta
+  filter(mun.cod == 13127) %>%
+  filter(Date >= "2020-05-05" & Date <= "2020-09-07" # 5 de mayo de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d19 = confinamiento %>% # Cerro Navia
+  filter(mun.cod == 13103) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-28" # 8 de mayo de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d20 = confinamiento %>% # Lo Espejo
+  filter(mun.cod == 13116) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-28" # 8 de mayo de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d21 = confinamiento %>% # Conchali
+  filter(mun.cod == 13104) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-28" # 8 de mayo de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d22 = confinamiento %>% # La Cisterna
+  filter(mun.cod == 13109) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-07" # 	8 de mayo de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d23 = confinamiento %>% # La Florida
+  filter(mun.cod == 13110) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-08-31" # 	8 de mayo de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d24 = confinamiento %>% # La Granja
+  filter(mun.cod == 13111) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-07" # 	8 de mayo de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d25 = confinamiento %>% # San Joaquin
+  filter(mun.cod == 13129) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-07" # 	8 de mayo de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d26 = confinamiento %>% # Lo Prado
+  filter(mun.cod == 13117) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-28" # 		8 de mayo de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d27 = confinamiento %>% # Macul
+  filter(mun.cod == 13118) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-08-31" # 	8 de mayo de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d28 = confinamiento %>% # Penalolen
+  filter(mun.cod == 13122) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-08-24" # 	8 de mayo de 2020-24 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d29 = confinamiento %>% # Renca
+  filter(mun.cod == 13128) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-10-05" # 	8 de mayo de 2020-5 de octubre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d30 = confinamiento %>% # San Miguel
+  filter(mun.cod == 13130) %>%
+  filter(Date >= "2020-05-08" & Date <= "2020-09-07" # 	8 de mayo de 2020-7 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d31 = confinamiento %>% # Buin
+  filter(mun.cod == 13402) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-09-28" # 	15 de mayo de 2020-28 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d32 = confinamiento %>% # Colina
+  filter(mun.cod == 13301) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-07-28" # 	15 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d33 = confinamiento %>% # Huechuraba
+  filter(mun.cod == 13107) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-08-31" # 	15 de mayo de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d34 = confinamiento %>% # Lampa
+  filter(mun.cod == 13302) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-08-09" # 	15 de mayo de 2020-9 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d35 = confinamiento %>% # La Reina
+  filter(mun.cod == 13113) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-07-28" # 	15 de mayo de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d36 = confinamiento %>% # Maipu
+  filter(mun.cod == 13119) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-08-31" # 15 de mayo de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d37 = confinamiento %>% # Padre Hurtado
+  filter(mun.cod == 13604) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-08-24" # 15 de mayo de 2020-24 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d38 = confinamiento %>% # Pudahuel 
+  filter(mun.cod == 13124) %>%
+  filter(Date >= "2020-05-15" & Date <= "2020-09-21" # 15 de mayo de 2020-21 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d39 = confinamiento %>% # Curacavi 
+  filter(mun.cod == 13503) %>%
+  filter(Date >= "2020-06-12" & Date <= "2020-08-09" # 12 de junio de 2020-9 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d40 = confinamiento %>% # Melipilla 
+  filter(mun.cod == 13501) %>%
+  filter(Date >= "2020-06-12" & Date <= "2020-08-09" # 12 de junio de 2020-9 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d41 = confinamiento %>% # Penaflor 
+  filter(mun.cod == 13605) %>%
+  filter(Date >= "2020-06-12" & Date <= "2020-08-24" # 12 de junio de 2020-24 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d42 = confinamiento %>% # San Jose de Maipo 
+  filter(mun.cod == 13203) %>%
+  filter(Date >= "2020-06-12" & Date <= "2020-08-24" # 12 de junio de 2020-24 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d43 = confinamiento %>% # Tiltil 
+  filter(mun.cod == 13303) %>%
+  filter(Date >= "2020-06-12" & Date <= "2020-07-28" # 12 de junio de 2020-28 de julio de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d44 = confinamiento %>% # Calera de Tango 
+  filter(mun.cod == 13403) %>%
+  filter(Date >= "2020-06-26" & Date <= "2020-08-31" # 26 de junio de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d45 = confinamiento %>% # Talagante
+  filter(mun.cod == 13601) %>%
+  filter(Date >= "2020-06-26" & Date <= "2020-08-31" # 	26 de junio de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d46 = confinamiento %>% # El Monte
+  filter(mun.cod == 13602) %>%
+  filter(Date >= "2020-06-26" & Date <= "2020-08-31" # 	26 de junio de 2020-31 de agosto de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d47 = confinamiento %>% # Isla de Maipo
+  filter(mun.cod == 13603) %>%
+  filter(Date >= "2020-07-27" & Date <= "2020-09-14" # 	27 de julio de 2020-14 de septiembre de 2020
+  ) %>% 
+  mutate(Paso = 1)
+
+d48 = confinamiento %>% # Paine
+  filter(mun.cod == 13404) %>%
+  filter(Date >= "2020-09-11" & Date <= "2020-10-03" # 	11 de septiembre de 2020-3 de octubre de 2020
   ) %>% 
   mutate(Paso = 1)
 
 
+# builds "confinamiento" dataset
+confinamiento = merge(confinamiento, rbind(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31, d32, d33, d34, d35, d36, d37, d38, d39, d40, d41, d42, d43, d44, d45, d46, d47, d48), by = c("Date", "mun.cod"))
 
+# duplicates?
+# nrow(confinamiento[!duplicated(confinamiento[c("Date", "mun.cod")]),]) == nrow(confinamiento)
 
-#### HASTA AQUI
-
-
-
-
-
-
-
-
-
-
-
-
+# merges "confinamiento" dataset with "paso" a paso dataset
+paso.d = rbind(paso.d, confinamiento)
 
 
 # Merge with Covid and Airport Data
-df = merge(dat,paso.d, by.y = c("Date","mun.cod"), all=T)
-#df = data.frame(na.omit(dat))
-df$Paso = as.factor(df$Paso)
+aux.dat = merge(dat,paso.d, by.y = c("Date","mun.cod"))
+
+# Separate into different datasets
+p_load(dplyr)
+
+
+# Mobility paper (Bus)
+mobility = aux.dat %>% dplyr::select(-c("operation", "plate", "aircraft", "place", "Comuna Aeródromo", "Latitude", "Longitude" ))
+mobility$Paso = as.factor(mobility$Paso)
+mobility = data.frame(na.omit(mobility))
+#save(mobility, file = "/Users/hectorbahamonde/research/Bus/data.Rdata")
+
+# Airport paper
+air = aux.dat %>% dplyr::select(-c("Covid", "Comuna"))
+air = data.frame(na.omit(air))
+air$Paso = as.factor(air$Paso)
+colnames(air)[colnames(air)=="Comuna.Aeródromo"] <- "Municipality"
+colnames(air)[colnames(air)=="place"] <- "Airport"
+p_load(stringr)
+air$Municipality = str_to_title(air$Municipality) 
+air$Airport = str_to_title(air$Airport) 
+save(air, file = "/Users/hectorbahamonde/research/Tobalaba/dat.Rdata")
+
 
 
 ############################## 
 # Toy map
 ##############################
+cat("\014")
+rm(list=ls())
+graphics.off()
+
+# loads pacman
+if (!require("pacman")) install.packages("pacman"); library(pacman) 
+
+setwd("~/research/Tobalaba")
+load("dat.Rdata")
+
 
 
 ## https://github.com/dkahle/ggmap
@@ -204,149 +491,21 @@ df$Paso = as.factor(df$Paso)
 p_load("ggmap")
 
 
-airport.centro = dat[ which(dat$Latitude <= -29 & dat$Latitude>= -36 & dat$Longitude >= -73 & dat$Longitude <= -69),]
+#airport.centro = dat[ which(dat$Latitude <= -29 & dat$Latitude>= -36 & dat$Longitude >= -73 & dat$Longitude <= -69),]
 
 
-qmplot(long.2, lat.2, 
+qmplot(Longitude, Latitude, 
        geom = "auto",
-       zoom = 8, 
-       data = airport.centro, 
+       #zoom = 4, 
+       data = air, 
        maptype = "toner-lite", 
        #darken = .4,
        alpha = I(0.2),
        color = I("red"),
        legend = "topleft",
-       facets = NULL
+       facets = ~Paso
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Multiple imputation for covid vector
-p_load(imputeTS)
-dat$Covid.tot.i = na_interpolation(dat$Covid.tot)
-dat$Covid.tot.i = ifelse(dat$Date < "2020-03-30", 0, dat$Covid.tot.i) # delete prior info
-dat$Covid.tot.i = round(dat$Covid.tot.i,0)
-
-# Multiple imputation for Departures vector // TEMPORARY (remove after getting complete dataset)
-p_load(imputeTS)
-dat$Departures.i = na_interpolation(dat$Departures)
-dat$Departures.i = round(dat$Departures.i,0)
-# Variable "Open" (how open the rich parte of the city is)
-# dat$Open = round(rowMeans(dat[,7:18], na.rm=TRUE),1)
-# dat$Open[is.na(dat$Open)] <- 4
-dat$Open = apply(dat[,7:18], 1, function(idx) which.max(tabulate(idx)))
-dat$Open = ifelse(dat$Date < "2020-03-26", 4, dat$Open)
-
-# Variable Weekend
-dat$Weekend = ifelse(dat$Day=="Saturday" |  dat$Day=="Sunday" | dat$Day=="Friday" | dat$Holiday==1, 1, 0)
-
-
-# Keep Weekend Data
-# dat <- dat[ which(dat$Weekend==1),]
-
-
-# Keep between dates
-# dat = dat[ which(dat$Date<"2020-07-28"),] # Fase 1
-dat = dat[ which(dat$Date<"2020-09-14"),] # Fase 1 y 2
-# Simple Plot
-ggplot(dat, aes(x=Date, y=Departures)) +   geom_line(aes(color=as.factor(Open))) +  xlab("") + theme_bw() 
-# save state file
-p_load(foreign)
-write.dta(dat, paste(getwd(),"dat.dta", sep = "/"))
-
-# RDD
-dat$Cutpoint = ifelse(dat$Date<"2020-03-26",0,1) # lockdown begins
-p_load(rddtools)
-data <- rdd_data(dat$Departures, dat$Date, cutpoint = as.Date("2020-03-26"), covar = dat$Covid.tot.i)
-data = na.omit(data)
-rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "same", covariates = TRUE)
-rdd_mod
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Empty (factor)
-dat$Empty.f = as.factor(ifelse(dat$Empty<0, "Arrivals", "Departures"))
-
-# Plot
-weekend = data.frame(
-  x.min=c(dat$Date[dat$Day=="Friday"]), 
-  x.max=c(dat$Date[dat$Day=="Sunday"]), 
-  y.min=c(rep(min(dat$Empty, na.rm = T), length(dat$Date[dat$Day=="Friday"]))), 
-  y.max=c(rep(max(dat$Empty, na.rm = T), length(dat$Date[dat$Day=="Friday"]))))
-
-phase.1 = data.frame(
-  x.min=c(dat$Date[dat$Open==1]), 
-  x.max=c(dat$Date[dat$Open==1]),
-  y.min=c(rep(min(dat$Empty, na.rm = T), length(dat$Date[dat$Open==1]))), 
-  y.max=c(rep(max(dat$Empty, na.rm = T), length(dat$Date[dat$Open==1]))))
-
-phase.2 = data.frame(
-  x.min=c(dat$Date[dat$Open==2]), 
-  x.max=c(dat$Date[dat$Open==2]),
-  y.min=c(rep(min(dat$Empty, na.rm = T), length(dat$Date[dat$Open==2]))), 
-  y.max=c(rep(max(dat$Empty, na.rm = T), length(dat$Date[dat$Open==2]))))
-
-phase.3 = data.frame(
-  x.min=c(dat$Date[dat$Open==3]), 
-  x.max=c(dat$Date[dat$Open==3]),
-  y.min=c(rep(min(dat$Empty, na.rm = T), length(dat$Date[dat$Open==3]))), 
-  y.max=c(rep(max(dat$Empty, na.rm = T), length(dat$Date[dat$Open==3]))))
-
-phase.4 = data.frame(
-  x.min=c(dat$Date[dat$Open==4]), 
-  x.max=c(dat$Date[dat$Open==4]),
-  y.min=c(rep(min(dat$Empty, na.rm = T), length(dat$Date[dat$Open==4]))), 
-  y.max=c(rep(max(dat$Empty, na.rm = T), length(dat$Date[dat$Open==4]))))
-
-
-p_load(ggplot2)
-ggplot() + 
-  #geom_rect(data=weekend, mapping=aes(xmin=x.min, xmax=x.max, ymin=y.min, ymax=y.max), color='grey', alpha=0.2) +
-  geom_rect(data=phase.1, mapping=aes(xmin=x.min, xmax=x.max, ymin=y.min, ymax=y.max), color='red', alpha=0.00001) +
-  geom_rect(data=phase.2, mapping=aes(xmin=x.min, xmax=x.max, ymin=y.min, ymax=y.max), color='orange', alpha=1) +
-  geom_rect(data=phase.3, mapping=aes(xmin=x.min, xmax=x.max, ymin=y.min, ymax=y.max), color='yellow', alpha=0.00001) +
-  geom_rect(data=phase.4, mapping=aes(xmin=x.min, xmax=x.max, ymin=y.min, ymax=y.max), color='blue', alpha=0.00001) +   geom_line(aes(x=Date, y=Empty), data=dat) + # color=Empty.f
-
-  
-  theme_bw() 
 
 
 

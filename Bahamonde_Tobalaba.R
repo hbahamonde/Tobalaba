@@ -63,7 +63,7 @@ p_load(DataCombine)
 airport = DropNA(airport, Var = c("lat", "long", "mun.cod"), message = F)
 
 # format vars
-airport$date = as.Date(airport$date)
+airport$Date = as.Date(airport$Date)
 
 # p_load(sp)
 #
@@ -92,8 +92,8 @@ airport$lat.2 = data.frame(unlist(t(data.frame(lapply(airport$lat, angle2dec))))
 airport$long.2 = data.frame(unlist(t(data.frame(lapply(airport$long, angle2dec)))))[,1]
 
 # jitter
-#airport$lat.2 = jitter(airport$lat.2, 7)
-#airport$long.2 = jitter(airport$long.2, 7)
+# airport$lat.2 = jitter(airport$lat.2, 20)
+# airport$long.2 = jitter(airport$long.2, 20)
 
 
 
@@ -443,13 +443,21 @@ confinamiento = merge(confinamiento, rbind(d1, d2, d3, d4, d5, d6, d7, d8, d9, d
 # merges "confinamiento" dataset with "paso" a paso dataset
 paso.d = rbind(paso.d, confinamiento)
 
+# Add socio-economic data
+p_load(rio, tidyverse)
+idc.d = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/IDC_data.csv',which = 1)
+idc.d$party = as.factor(idc.d$party)
+idc.d$Comuna = as.factor(idc.d$Comuna)
+
+paso.d = merge(paso.d,idc.d, by.y = c("mun.cod"))
 
 # Merge with Covid and Airport Data
-aux.dat = merge(dat,paso.d, by.y = c("Date","mun.cod"))
+aux.dat = merge(dat,paso.d, by = c("Date","mun.cod"))
+aux.dat = aux.dat %>% dplyr::select(-c("Comuna.x"))
+colnames(aux.dat)[colnames(aux.dat)=="Comuna.y"] <- "Comuna"
 
 # Separate into different datasets
 p_load(dplyr)
-
 
 # Mobility paper (Bus)
 mobility = aux.dat %>% dplyr::select(-c("operation", "plate", "aircraft", "place", "Comuna Aeródromo", "Latitude", "Longitude" ))
@@ -496,22 +504,25 @@ p_load("ggmap")
 
 qmplot(Longitude, Latitude, 
        geom = "auto",
-       #zoom = 4, 
+       #zoom = 9, 
        data = air, 
        maptype = "toner-lite", 
        #darken = .4,
        alpha = I(0.2),
-       color = I("red"),
-       legend = "topleft",
-       facets = ~Paso
+       colour = "red",
+       legend = "none",
+       facets = ~Paso,
+       shape = I(15),
+       size = IDC#,
+       #stat = "count"
 )
 
 
-
-
-#### Transportation Analyses
+#### Examples
 
 # https://spatial.blog.ryerson.ca/2019/09/03/transportation-flow-mapping-using-r/
 # https://rstudio-pubs-static.s3.amazonaws.com/259095_2f8cb24b43284692a8af916bd447931d.html
 # https://servicios.dgac.gob.cl/portal_consulta_aeronaves/
 # https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
+
+# https://www.sqlshack.com/how-to-create-geographic-maps-in-power-bi-using-r/

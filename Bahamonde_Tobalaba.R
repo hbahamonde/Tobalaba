@@ -503,19 +503,20 @@ p_load("ggmap")
 
 
 qmplot(Longitude, Latitude, 
-       geom = "auto",
+       geom = "auto", # "auto"
        #zoom = 9, 
        data = air, 
        maptype = "toner-lite", 
        #darken = .4,
-       alpha = I(0.2),
-       colour = "red",
-       legend = "none",
+       alpha = I(0.5),
+       colour = IDC,#"red",
+       #legend = "none",
        facets = ~Paso,
-       shape = I(15),
-       size = IDC#,
-       #stat = "count"
-)
+       #fill = spd,
+       shape = Paso,
+       size = IDC) + theme(legend.position="none")
+
+
 
 
 #### Examples
@@ -526,3 +527,144 @@ qmplot(Longitude, Latitude,
 # https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
 
 # https://www.sqlshack.com/how-to-create-geographic-maps-in-power-bi-using-r/
+
+
+# https://stackoverflow.com/questions/36063043/how-to-plot-barchart-onto-ggplot2-map
+
+
+# https://stackoverflow.com/questions/16028659/plotting-bar-charts-on-map-using-ggplot2
+p_load(ggsubplot, ggplot2, maps, plyr)
+# ggsubplot doesnt exist.
+
+# https://matthewsmith.rbind.io/post/ggplot-maps/
+
+p_load(googleway, tidyverse)
+
+key = "key"
+set_key(key = key) #key is the api
+register_google(key = key)
+
+google_keys()
+
+google_map() %>%
+  add_markers(
+    data = air
+  )
+
+
+#####
+p_load(httr,jsonlite,tidyverse) 
+
+yelp_search<-function(term,location,limit, radius,client_id,api){
+  yelp <- "https://api.yelp.com"
+  
+  url <- modify_url(yelp, path = c("v3", "businesses", "search"),
+                    query = list(term = term, location = location, 
+                                 limit = limit,
+                                 radius = radius))
+  res <- GET(url, add_headers('Authorization' = paste("bearer", api)))
+  
+  resTEXT<-httr::content(res, as="text")
+  JLres<-jsonlite::fromJSON(resTEXT, flatten=TRUE)
+  
+  BUS<-JLres$businesses
+  cat_list<-list()
+  for (i in 1:length(BUS$name)){
+    categories1<-BUS$categories[[i]] %>%
+      as.vector()
+    c2<-as.vector(categories1$title)
+    c3<-paste0(c2, collapse = ", ")
+    cat_list[[i]]<-c3
+  }
+  
+  c4<-unlist(cat_list)
+  
+  
+  BUSINESS_DF<-select(BUS,name,rating,review_count,price,phone,
+                      latitude=coordinates.latitude,
+                      longitude=coordinates.longitude,
+                      postcode=location.zip_code)%>%
+    mutate(categories=c4)%>%
+    as_tibble()
+  
+  BUSINESS_DF$price_num<-nchar(BUSINESS_DF$price)
+  
+  return(BUSINESS_DF)
+  
+}
+
+term <- "barber"
+location <- "Manchester, UK"
+limit <- 20
+radius <- 8000
+client_id <- "client_id"
+api <- "api"
+#api and client_id are obtained from Yelp developer page
+
+yelp_df <- yelp_search(term,location,limit,radius,client_id,api)%>%
+  filter(!is.na(price_num))
+
+yelp_df$info<-paste0("<b>Name: </b>",yelp_df$name," ",
+                     "<b>Rating: </b>",yelp_df$rating)
+p_load(googleway,tidyverse)
+
+set_key(key = key) #key is the api
+
+google_map() %>%
+  add_markers(
+    data = yelp_df,
+    info_window = "info"
+  )
+p_load(tidyverse, reshape2)
+for(i in 1:length(yelp_df$name)) {
+  name_place<-yelp_df$name[[i]]
+  yp<-select(yelp_df,name,rating,review_count,price_num)%>%
+    melt()
+  p <- ggplot(subset(yp, name==name_place), 
+              aes(variable, value,  fill = variable)) + 
+    geom_bar(stat="identity", show.legend=FALSE)+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          panel.background = element_rect(fill = "transparent"), # bg of the panel
+          plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+          panel.grid.major = element_blank(), # get rid of major grid
+          panel.grid.minor = element_blank(), # get rid of minor grid
+          legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+          legend.box.background = element_rect(fill = "transparent") # get rid of legend panel bg
+    )
+  file_name<-paste0("figure_",i,"_",name_place,".png")%>%
+    tolower()%>%
+    gsub("[[:space:]]", "", .)
+  
+  ggsave(file_name, p,width=0.6,height=0.3,
+         bg = "transparent")
+}
+
+path_to_images <-"https://raw.githubusercontent.com/matthewsmith430/vis_image/master/"
+
+for (i in 1:length(yelp_df$name)){
+  name_place<-yelp_df$name[[i]]
+  
+  
+  file_name<-paste0("figure_",i,"_",name_place,".png")%>%
+    tolower()%>%
+    gsub("[[:space:]]", "", .)
+  
+  yelp_df$image[i]<-paste0(path_to_images, file_name)
+  
+}
+
+p_load(googleway, tidyverse)
+
+set_key(key = key) #key is the api
+
+google_map() %>%
+  add_markers(
+    data = yelp_df,
+    marker_icon = "image",
+    info_window = "info"
+  )

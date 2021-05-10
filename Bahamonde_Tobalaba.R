@@ -466,14 +466,27 @@ mobility = data.frame(na.omit(mobility))
 #save(mobility, file = "/Users/hectorbahamonde/research/Bus/data.Rdata")
 
 # Airport paper
-air = aux.dat %>% dplyr::select(-c("Covid", "Comuna"))
-air = data.frame(na.omit(air))
+air = aux.dat %>% dplyr::select(-c("Comuna"))
 air$Paso = as.factor(air$Paso)
-colnames(air)[colnames(air)=="Comuna.Aeródromo"] <- "Municipality"
+colnames(air)[colnames(air)=="Comuna Aeródromo"] <- "Municipality"
 colnames(air)[colnames(air)=="place"] <- "Airport"
 p_load(stringr)
 air$Municipality = str_to_title(air$Municipality) 
 air$Airport = str_to_title(air$Airport) 
+
+
+# multiple imputation
+## https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
+## https://stat.ethz.ch/~maechler/adv_topics_compstat/MissingData_Imputation.html
+p_load(Hmisc)
+with(air, impute(Covid, mean))
+
+# HERE
+
+
+
+#air = data.frame(na.omit(air))
+
 save(air, file = "/Users/hectorbahamonde/research/Tobalaba/dat.Rdata")
 
 
@@ -491,32 +504,77 @@ if (!require("pacman")) install.packages("pacman"); library(pacman)
 setwd("~/research/Tobalaba")
 load("dat.Rdata")
 
+# Airport locations
+airport.d = unique(air %>% select(mun.cod, Latitude, Longitude, Municipality))
+
+# RM map
+p_load(chilemapas)
+
+# filter only RM
+rm.d = mapa_comunas %>% 
+  filter(codigo_region == 13) %>% 
+  left_join(
+    codigos_territoriales %>% 
+      select(matches("comuna"))
+  )
+
+colnames(rm.d)[colnames(rm.d)=="codigo_comuna"] <- "mun.cod"
+
+# add IDC to rm.d
+p_load(rio, tidyverse)
+idc.d = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/IDC_data.csv',which = 1)
+idc.d = idc.d %>% select(mun.cod, IDC)
+
+rm.d = merge(rm.d, idc.d, by = "mun.cod")
+
+p_load(dplyr, ggplot2)
+
+# map
+ggplot(rm.d) + 
+  geom_sf(aes(fill = IDC, geometry = geometry)) +
+  theme_minimal(base_size = 13) +
+  geom_point(aes(x = Longitude, y = Latitude, colour = Municipality),
+             data = airport.d) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        plot.background = element_rect(fill = "transparent", color = NA), 
+        panel.grid.major = element_blank(),
+        legend.position = 'bottom'
+        )
 
 
-## https://github.com/dkahle/ggmap
-# if(!requireNamespace("devtools")) install.packages("devtools")
-# devtools::install_github("dkahle/ggmap")
-p_load("ggmap")
+# time series plot
+p_load(ggplot2)
+ggplot(air, aes(x=Date, fill = Paso)) + geom_bar(width = 0.8) +  facet_grid(scales = "free_y", rows = vars(Municipality))
 
 
-#airport.centro = dat[ which(dat$Latitude <= -29 & dat$Latitude>= -36 & dat$Longitude >= -73 & dat$Longitude <= -69),]
 
 
-qmplot(Longitude, Latitude, 
-       geom = "auto", # "auto"
-       #zoom = 9, 
-       data = air, 
-       maptype = "toner-lite", 
-       #darken = .4,
-       alpha = I(0.5),
-       colour = IDC,#"red",
-       #legend = "none",
-       facets = ~Paso,
-       #fill = spd,
-       shape = Paso,
-       size = IDC) + theme(legend.position="none")
+# Logit model
+
+## recode 1 = paso 1, 0, otherwise
+air$Paso.r = ifelse(air$Paso==1 | air$Paso==2, 1, 0)
+
+# toy plot
+p_load(lattice)
+lattice::histogram(as.factor(air$Paso.r))
+
+# model
+## https://cran.r-project.org/web/packages/logistf/index.html
+formula = as.formula(Paso.r~IDC+party)
 
 
+
+
+
+logit.model <- glm(formula, data=air, family=binomial(link="logit")) 
+summary(logit.model)
+p_load(clusterSEs)
+cluster.bs.glm(logit.model, air, ~ Municipality, report = T)
 
 
 #### Examples
@@ -533,138 +591,9 @@ qmplot(Longitude, Latitude,
 
 
 # https://stackoverflow.com/questions/16028659/plotting-bar-charts-on-map-using-ggplot2
-p_load(ggsubplot, ggplot2, maps, plyr)
 # ggsubplot doesnt exist.
 
 # https://matthewsmith.rbind.io/post/ggplot-maps/
 
-p_load(googleway, tidyverse)
-
-key = "key"
-set_key(key = key) #key is the api
-register_google(key = key)
-
-google_keys()
-
-google_map() %>%
-  add_markers(
-    data = air
-  )
 
 
-#####
-p_load(httr,jsonlite,tidyverse) 
-
-yelp_search<-function(term,location,limit, radius,client_id,api){
-  yelp <- "https://api.yelp.com"
-  
-  url <- modify_url(yelp, path = c("v3", "businesses", "search"),
-                    query = list(term = term, location = location, 
-                                 limit = limit,
-                                 radius = radius))
-  res <- GET(url, add_headers('Authorization' = paste("bearer", api)))
-  
-  resTEXT<-httr::content(res, as="text")
-  JLres<-jsonlite::fromJSON(resTEXT, flatten=TRUE)
-  
-  BUS<-JLres$businesses
-  cat_list<-list()
-  for (i in 1:length(BUS$name)){
-    categories1<-BUS$categories[[i]] %>%
-      as.vector()
-    c2<-as.vector(categories1$title)
-    c3<-paste0(c2, collapse = ", ")
-    cat_list[[i]]<-c3
-  }
-  
-  c4<-unlist(cat_list)
-  
-  
-  BUSINESS_DF<-select(BUS,name,rating,review_count,price,phone,
-                      latitude=coordinates.latitude,
-                      longitude=coordinates.longitude,
-                      postcode=location.zip_code)%>%
-    mutate(categories=c4)%>%
-    as_tibble()
-  
-  BUSINESS_DF$price_num<-nchar(BUSINESS_DF$price)
-  
-  return(BUSINESS_DF)
-  
-}
-
-term <- "barber"
-location <- "Manchester, UK"
-limit <- 20
-radius <- 8000
-client_id <- "client_id"
-api <- "api"
-#api and client_id are obtained from Yelp developer page
-
-yelp_df <- yelp_search(term,location,limit,radius,client_id,api)%>%
-  filter(!is.na(price_num))
-
-yelp_df$info<-paste0("<b>Name: </b>",yelp_df$name," ",
-                     "<b>Rating: </b>",yelp_df$rating)
-p_load(googleway,tidyverse)
-
-set_key(key = key) #key is the api
-
-google_map() %>%
-  add_markers(
-    data = yelp_df,
-    info_window = "info"
-  )
-p_load(tidyverse, reshape2)
-for(i in 1:length(yelp_df$name)) {
-  name_place<-yelp_df$name[[i]]
-  yp<-select(yelp_df,name,rating,review_count,price_num)%>%
-    melt()
-  p <- ggplot(subset(yp, name==name_place), 
-              aes(variable, value,  fill = variable)) + 
-    geom_bar(stat="identity", show.legend=FALSE)+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          panel.background = element_rect(fill = "transparent"), # bg of the panel
-          plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
-          panel.grid.major = element_blank(), # get rid of major grid
-          panel.grid.minor = element_blank(), # get rid of minor grid
-          legend.background = element_rect(fill = "transparent"), # get rid of legend bg
-          legend.box.background = element_rect(fill = "transparent") # get rid of legend panel bg
-    )
-  file_name<-paste0("figure_",i,"_",name_place,".png")%>%
-    tolower()%>%
-    gsub("[[:space:]]", "", .)
-  
-  ggsave(file_name, p,width=0.6,height=0.3,
-         bg = "transparent")
-}
-
-path_to_images <-"https://raw.githubusercontent.com/matthewsmith430/vis_image/master/"
-
-for (i in 1:length(yelp_df$name)){
-  name_place<-yelp_df$name[[i]]
-  
-  
-  file_name<-paste0("figure_",i,"_",name_place,".png")%>%
-    tolower()%>%
-    gsub("[[:space:]]", "", .)
-  
-  yelp_df$image[i]<-paste0(path_to_images, file_name)
-  
-}
-
-p_load(googleway, tidyverse)
-
-set_key(key = key) #key is the api
-
-google_map() %>%
-  add_markers(
-    data = yelp_df,
-    marker_icon = "image",
-    info_window = "info"
-  )

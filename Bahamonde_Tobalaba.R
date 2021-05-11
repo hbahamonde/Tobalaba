@@ -605,6 +605,7 @@ setwd("~/research/Tobalaba")
 load("dat.Rdata")
 
 # Airport locations
+p_load(dplyr)
 airport.d = unique(air %>% select(mun.cod, Latitude, Longitude, Comuna))
 
 # RM map
@@ -623,7 +624,7 @@ colnames(rm.d)[colnames(rm.d)=="codigo_comuna"] <- "mun.cod"
 # add IDC to rm.d
 p_load(rio, tidyverse)
 idc.d = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/IDC_data.csv',which = 1)
-idc.d = idc.d %>% select(mun.cod, IDC)
+idc.d = idc.d %>% select(mun.cod, Economia)
 
 rm.d = merge(rm.d, idc.d, by = "mun.cod")
 
@@ -631,7 +632,7 @@ p_load(dplyr, ggplot2)
 
 # map
 ggplot(rm.d) + 
-  geom_sf(aes(fill = IDC, geometry = geometry)) +
+  geom_sf(aes(fill = Economia, geometry = geometry)) +
   theme_minimal(base_size = 13) +
   geom_point(aes(x = Longitude, y = Latitude, colour = Comuna),
              data = airport.d) +
@@ -649,7 +650,7 @@ ggplot(rm.d) +
 
 # time series plot
 p_load(ggplot2)
-ggplot(air, aes(x=Date, fill = Paso)) + geom_bar(width = 0.8) +  facet_grid(scales = "free_y", rows = vars(Municipality))
+ggplot(air, aes(x=Date, fill = Paso)) + geom_bar(width = 0.8) +  facet_grid(scales = "free_y", rows = vars(Comuna))
 
 
 
@@ -664,36 +665,29 @@ p_load(lattice)
 lattice::histogram(as.factor(air$Paso.d))
 
 # model
-## https://cran.r-project.org/web/packages/logistf/index.html
-formula = as.formula(Paso.d~IDC+party)
-
-
-
-
+formula = as.formula(Paso.d~
+                       #Bienestar+
+                       #Economia +
+                       #Educacion +
+                       #party+
+                       #IDC +
+                       #mun.pop+
+                       #Covid.mi +
+                     Economia*Covid.mi
+                     )
 
 logit.model <- glm(formula, data=air, family=binomial(link="logit")) 
 summary(logit.model)
-p_load(clusterSEs)
-cluster.bs.glm(logit.model, air, ~ Municipality, report = T)
+p_load("effects") 
+plot(predictorEffects(logit.model)) # Todo el modelo
 
 
-#### Examples
+# interaction fx
+## https://cran.r-project.org/web/packages/sjPlot/vignettes/plot_interactions.html
+## install.packages("sjPlot")
+## install.packages("sjmisc")
+library(sjPlot)
+library(sjmisc)
 
-# https://spatial.blog.ryerson.ca/2019/09/03/transportation-flow-mapping-using-r/
-# https://rstudio-pubs-static.s3.amazonaws.com/259095_2f8cb24b43284692a8af916bd447931d.html
-# https://servicios.dgac.gob.cl/portal_consulta_aeronaves/
-# https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
-
-# https://www.sqlshack.com/how-to-create-geographic-maps-in-power-bi-using-r/
-
-
-# https://stackoverflow.com/questions/36063043/how-to-plot-barchart-onto-ggplot2-map
-
-
-# https://stackoverflow.com/questions/16028659/plotting-bar-charts-on-map-using-ggplot2
-# ggsubplot doesnt exist.
-
-# https://matthewsmith.rbind.io/post/ggplot-maps/
-
-
-
+plot_model(logit.model, type = "pred", terms = c("Economia", "Covid.mi"))
+plot_model(logit.model, type = "pred", terms = c("Covid.mi [all]", "Economia"))

@@ -443,6 +443,12 @@ confinamiento = merge(confinamiento, rbind(d1, d2, d3, d4, d5, d6, d7, d8, d9, d
 # merges "confinamiento" dataset with "paso" a paso dataset
 paso.d = rbind(paso.d, confinamiento)
 
+# Add Municipal Popuplation data (SINIM, 18yrds old and older)
+p_load(rio, tidyverse)
+mun.pop = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/mun_pop_rm.csv',which = 1)
+paso.d = merge(paso.d,mun.pop, by.y = c("mun.cod"))
+
+
 # Add socio-economic data
 p_load(rio, tidyverse)
 idc.d = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/IDC_data.csv',which = 1)
@@ -456,41 +462,113 @@ aux.dat = merge(dat,paso.d, by = c("Date","mun.cod"))
 aux.dat = aux.dat %>% dplyr::select(-c("Comuna.x"))
 colnames(aux.dat)[colnames(aux.dat)=="Comuna.y"] <- "Comuna"
 
-# Separate into different datasets
-p_load(dplyr)
-
-# Mobility paper (Bus)
-mobility = aux.dat %>% dplyr::select(-c("operation", "plate", "aircraft", "place", "Comuna Aeródromo", "Latitude", "Longitude" ))
-mobility$Paso = as.factor(mobility$Paso)
-mobility = data.frame(na.omit(mobility))
-#save(mobility, file = "/Users/hectorbahamonde/research/Bus/data.Rdata")
-
 # Airport paper
+p_load(dplyr)
 air = aux.dat %>% dplyr::select(-c("Comuna"))
 air$Paso = as.factor(air$Paso)
 colnames(air)[colnames(air)=="Comuna Aeródromo"] <- "Municipality"
 colnames(air)[colnames(air)=="place"] <- "Airport"
 p_load(stringr)
 air$Municipality = str_to_title(air$Municipality) 
-air$Airport = str_to_title(air$Airport) 
+air$Airport = str_to_title(air$Airport)
 
 
 # multiple imputation
-## https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
-## https://stat.ethz.ch/~maechler/adv_topics_compstat/MissingData_Imputation.html
-p_load(Hmisc)
-with(air, impute(Covid, mean))
+## https://r.iq.harvard.edu/docs/amelia/amelia.pdf
 
-# HERE
+#install.packages("Amelia", repos="http://r.iq.harvard.edu", type = "source")
+p_load(Amelia,dplyr)
+
+air.mi = air %>% dplyr::select("Date", "mun.cod", "Covid", "Bienestar", "Economia", "Educacion", "Paso", "mun.pop") 
+
+## "Unless the rate of missingness is very high, m = 5 (the program default) is probably adequate" p. 4
+
+## bounds
+bds <- matrix(c(3,min(air$Covid, na.rm = T),max(air$Covid, na.rm = T)), nrow = 1, ncol = 3) # nota that 3 is the 3rd column of the air.mi matrix.
+
+## MI procedure via Amelia
+amelia.out = amelia(air.mi, m = 5, 
+                    ts = "Date", 
+                    cs = "mun.cod", 
+                    polytime = 3, # polynomial of the time index
+                    p2s = 3, 
+                    ords = "Covid",
+                    noms = "Paso",
+                    bounds = bds,
+                    max.resample = 1000,
+                    #logs= "l.Covid",
+                    seed = 2020
+)
+
+options(scipen=10000) # Apaga la notacion cientifica
+compare.density(amelia.out, var= "Covid")
 
 
+dev.off();dev.off();
+par(mfrow=c(3,4))
 
-#air = data.frame(na.omit(air))
+# Vitacura
+tscsPlot(amelia.out, cs="13132", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13132"]))))
+# La Reina
+tscsPlot(amelia.out, cs="13113", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13113"]))))
+# Pudahuel
+tscsPlot(amelia.out, cs="13124", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13124"]))))
+# Colina
+tscsPlot(amelia.out, cs="13301", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13301"]))))
+# Melipilla
+tscsPlot(amelia.out, cs="13501", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13501"]))))
+# San Jose de Maipo
+tscsPlot(amelia.out, cs="13203", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13203"]))))
+# Curacavi
+tscsPlot(amelia.out, cs="13503", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13503"]))))
+# Pirque
+tscsPlot(amelia.out, cs="13202", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13202"]))))
+# Maria Pinto
+tscsPlot(amelia.out, cs="13504", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13504"]))))
+# Talagante
+tscsPlot(amelia.out, cs="13601", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13601"]))))
+# Lampa
+tscsPlot(amelia.out, cs="13302", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13302"]))))
+# Huechuraba
+tscsPlot(amelia.out, cs="13107", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13107"]))))
+
+dev.off();dev.off();
+overimpute(amelia.out, var="Covid")
+# summary(amelia.out)
+
+# average all m imputed datasets
+covid.imputed <- data.frame(t(rbind(
+  imp1 = amelia.out$imputations$imp1$Covid,
+  imp2 = amelia.out$imputations$imp2$Covid,
+  imp3 = amelia.out$imputations$imp3$Covid,
+  imp4 = amelia.out$imputations$imp4$Covid,
+  imp5 = amelia.out$imputations$imp5$Covid,
+  mun.cod = amelia.out$imputations$imp1$mun.cod,
+  Date = as.Date(amelia.out$imputations$imp1$Date, "%Y%m%d"))
+))
+covid.imputed$Date = as.Date(amelia.out$imputations$imp1$Date, "%Y%m%d")
+
+
+covid.imputed$Covid.mi <- round(rowMeans(subset(covid.imputed, select = c(imp1,imp2,imp3,imp4,imp5)), na.rm = TRUE),0)
+air.mi = covid.imputed %>% dplyr::select("Date", "mun.cod", "Covid.mi") 
+
+# merge imputed air with air
+air = merge(air.mi,air, by = c("Date","mun.cod"))
+
+
+# Mobility paper (Bus)
+p_load(dplyr)
+mobility = air %>% dplyr::select(-c("operation", "plate", "aircraft", "Airport", "Latitude", "Longitude" ))
+mobility$Paso = as.factor(mobility$Paso)
+mobility = data.frame(na.omit(mobility))
+save(mobility, file = "/Users/hectorbahamonde/research/Bus/data.Rdata")
+
+# drop na's
+air = air[!is.na(air$operation), ]
+
+
 
 save(air, file = "/Users/hectorbahamonde/research/Tobalaba/dat.Rdata")
-
-
-
 ############################## 
 # Toy map
 ##############################
@@ -557,15 +635,15 @@ ggplot(air, aes(x=Date, fill = Paso)) + geom_bar(width = 0.8) +  facet_grid(scal
 # Logit model
 
 ## recode 1 = paso 1, 0, otherwise
-air$Paso.r = ifelse(air$Paso==1 | air$Paso==2, 1, 0)
+air$Paso.d = ifelse(air$Paso==1 | air$Paso==2, 1, 0)
 
 # toy plot
 p_load(lattice)
-lattice::histogram(as.factor(air$Paso.r))
+lattice::histogram(as.factor(air$Paso.d))
 
 # model
 ## https://cran.r-project.org/web/packages/logistf/index.html
-formula = as.formula(Paso.r~IDC+party)
+formula = as.formula(Paso.d~IDC+party)
 
 
 

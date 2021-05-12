@@ -488,8 +488,68 @@ amelia.out = amelia(paso.mi, m = 5,
                     seed = 2020
 )
 
-options(scipen=10000) # Apaga la notacion cientifica
-compare.density(amelia.out, var= "Covid")
+# MI Diagnostics
+# overimpute(amelia.out, var="Covid")
+# summary(amelia.out)
+
+# dev.off();dev.off();
+# par(mfrow=c(2,52))
+# tscsPlot(amelia.out, cs="13101", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13101"]))))
+# tscsPlot(amelia.out, cs="13102", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13102"]))))
+# tscsPlot(amelia.out, cs="13103", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13103"]))))
+# tscsPlot(amelia.out, cs="13104", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13104"]))))
+# tscsPlot(amelia.out, cs="13105", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13105"]))))
+# tscsPlot(amelia.out, cs="13106", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13106"]))))
+# tscsPlot(amelia.out, cs="13107", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13107"]))))
+# tscsPlot(amelia.out, cs="13108", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13108"]))))
+# tscsPlot(amelia.out, cs="13109", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13109"]))))
+# tscsPlot(amelia.out, cs="13110", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13110"]))))
+# tscsPlot(amelia.out, cs="13111", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13111"]))))
+# tscsPlot(amelia.out, cs="13112", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13112"]))))
+# tscsPlot(amelia.out, cs="13113", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13113"]))))
+# tscsPlot(amelia.out, cs="13114", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13114"]))))
+# tscsPlot(amelia.out, cs="13115", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13115"]))))
+# tscsPlot(amelia.out, cs="13116", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13116"]))))
+# tscsPlot(amelia.out, cs="13117", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13117"]))))
+# tscsPlot(amelia.out, cs="13118", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13118"]))))
+# tscsPlot(amelia.out, cs="13119", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13119"]))))
+# tscsPlot(amelia.out, cs="13120", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13120"]))))
+# tscsPlot(amelia.out, cs="13121", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13121"]))))
+# tscsPlot(amelia.out, cs="13122", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13122"]))))
+# tscsPlot(amelia.out, cs="13123", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13123"]))))
+# tscsPlot(amelia.out, cs="13124", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13124"]))))
+# tscsPlot(amelia.out, cs="13125", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13125"]))))
+# tscsPlot(amelia.out, cs="13126", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13126"]))))
+# tscsPlot(amelia.out, cs="13127", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13127"]))))
+# tscsPlot(amelia.out, cs="13128", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13128"]))))
+# tscsPlot(amelia.out, cs="13129", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13129"]))))
+# tscsPlot(amelia.out, cs="13130", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13130"]))))
+# tscsPlot(amelia.out, cs="13131", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13131"]))))
+# tscsPlot(amelia.out, cs="13132", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13132"]))))
+# tscsPlot(amelia.out, cs="13201", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13201"]))))
+# tscsPlot(amelia.out, cs="13202", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13202"]))))
+# tscsPlot(amelia.out, cs="13203", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13203"]))))
+# tscsPlot(amelia.out, cs="13301", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13301"]))))
+# tscsPlot(amelia.out, cs="13302", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13302"]))))
+# tscsPlot(amelia.out, cs="13303", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13303"]))))
+# tscsPlot(amelia.out, cs="13401", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13401"]))))
+# tscsPlot(amelia.out, cs="13402", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13402"]))))
+# tscsPlot(amelia.out, cs="13403", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13403"]))))
+# tscsPlot(amelia.out, cs="13404", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13404"]))))
+# tscsPlot(amelia.out, cs="13501", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13501"]))))
+# tscsPlot(amelia.out, cs="13502", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13502"]))))
+# tscsPlot(amelia.out, cs="13503", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13503"]))))
+# tscsPlot(amelia.out, cs="13504", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13504"]))))
+# tscsPlot(amelia.out, cs="13505", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13505"]))))
+# tscsPlot(amelia.out, cs="13601", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13601"]))))
+# tscsPlot(amelia.out, cs="13602", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13602"]))))
+# tscsPlot(amelia.out, cs="13603", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13603"]))))
+# tscsPlot(amelia.out, cs="13604", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13604"]))))
+# tscsPlot(amelia.out, cs="13605", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13605"]))))
+# dev.off();dev.off();
+
+# options(scipen=10000) # Apaga la notacion cientifica
+# compare.density(amelia.out, var= "Covid")
 
 
 # average all m imputed datasets
@@ -528,71 +588,15 @@ air = air[!is.na(air$Longitude), ]
 
 save(air, file = "/Users/hectorbahamonde/research/Tobalaba/dat.Rdata")
 
-# MI Diagnostics
-overimpute(amelia.out, var="Covid")
-summary(amelia.out)
+# Bus paper
+p_load(dplyr)
+bus = paso.d %>% dplyr::select(-c("Covid")) 
 
-
-
-dev.off();dev.off();
-par(mfrow=c(2,52))
-tscsPlot(amelia.out, cs="13101", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13101"]))))
-tscsPlot(amelia.out, cs="13102", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13102"]))))
-tscsPlot(amelia.out, cs="13103", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13103"]))))
-tscsPlot(amelia.out, cs="13104", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13104"]))))
-tscsPlot(amelia.out, cs="13105", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13105"]))))
-tscsPlot(amelia.out, cs="13106", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13106"]))))
-tscsPlot(amelia.out, cs="13107", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13107"]))))
-tscsPlot(amelia.out, cs="13108", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13108"]))))
-tscsPlot(amelia.out, cs="13109", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13109"]))))
-tscsPlot(amelia.out, cs="13110", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13110"]))))
-tscsPlot(amelia.out, cs="13111", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13111"]))))
-tscsPlot(amelia.out, cs="13112", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13112"]))))
-tscsPlot(amelia.out, cs="13113", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13113"]))))
-tscsPlot(amelia.out, cs="13114", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13114"]))))
-tscsPlot(amelia.out, cs="13115", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13115"]))))
-tscsPlot(amelia.out, cs="13116", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13116"]))))
-tscsPlot(amelia.out, cs="13117", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13117"]))))
-tscsPlot(amelia.out, cs="13118", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13118"]))))
-tscsPlot(amelia.out, cs="13119", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13119"]))))
-tscsPlot(amelia.out, cs="13120", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13120"]))))
-tscsPlot(amelia.out, cs="13121", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13121"]))))
-tscsPlot(amelia.out, cs="13122", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13122"]))))
-tscsPlot(amelia.out, cs="13123", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13123"]))))
-tscsPlot(amelia.out, cs="13124", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13124"]))))
-tscsPlot(amelia.out, cs="13125", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13125"]))))
-tscsPlot(amelia.out, cs="13126", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13126"]))))
-tscsPlot(amelia.out, cs="13127", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13127"]))))
-tscsPlot(amelia.out, cs="13128", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13128"]))))
-tscsPlot(amelia.out, cs="13129", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13129"]))))
-tscsPlot(amelia.out, cs="13130", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13130"]))))
-tscsPlot(amelia.out, cs="13131", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13131"]))))
-tscsPlot(amelia.out, cs="13132", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13132"]))))
-tscsPlot(amelia.out, cs="13201", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13201"]))))
-tscsPlot(amelia.out, cs="13202", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13202"]))))
-tscsPlot(amelia.out, cs="13203", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13203"]))))
-tscsPlot(amelia.out, cs="13301", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13301"]))))
-tscsPlot(amelia.out, cs="13302", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13302"]))))
-tscsPlot(amelia.out, cs="13303", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13303"]))))
-tscsPlot(amelia.out, cs="13401", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13401"]))))
-tscsPlot(amelia.out, cs="13402", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13402"]))))
-tscsPlot(amelia.out, cs="13403", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13403"]))))
-tscsPlot(amelia.out, cs="13404", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13404"]))))
-tscsPlot(amelia.out, cs="13501", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13501"]))))
-tscsPlot(amelia.out, cs="13502", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13502"]))))
-tscsPlot(amelia.out, cs="13503", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13503"]))))
-tscsPlot(amelia.out, cs="13504", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13504"]))))
-tscsPlot(amelia.out, cs="13505", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13505"]))))
-tscsPlot(amelia.out, cs="13601", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13601"]))))
-tscsPlot(amelia.out, cs="13602", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13602"]))))
-tscsPlot(amelia.out, cs="13603", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13603"]))))
-tscsPlot(amelia.out, cs="13604", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13604"]))))
-tscsPlot(amelia.out, cs="13605", var = "Covid", main = unique(as.character(na.omit(air$Municipality[air$mun.cod=="13605"]))))
-dev.off();dev.off();
+save(bus, file = "/Users/hectorbahamonde/research/Bus/dat.Rdata")
 
 
 ############################## 
-# Toy map
+# Analyses
 ##############################
 cat("\014")
 rm(list=ls())
@@ -601,8 +605,9 @@ graphics.off()
 # loads pacman
 if (!require("pacman")) install.packages("pacman"); library(pacman) 
 
-setwd("~/research/Tobalaba")
-load("dat.Rdata")
+# import data
+p_load(rio)
+air = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/dat.Rdata')
 
 # Airport locations
 p_load(dplyr)

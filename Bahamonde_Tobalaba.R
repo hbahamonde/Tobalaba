@@ -460,6 +460,7 @@ mun.pop = rio::import(file = 'https://github.com/hbahamonde/Tobalaba/raw/main/mu
 paso.d = merge(paso.d,mun.pop, by.y = c("mun.cod"))
 paso.d["Paso"][is.na(paso.d[c("Paso")])] <- 0 # replaces NA in paso with a 0
 
+save(paso.d, file = "/Users/hectorbahamonde/research/Bus/paso.Rdata")
 
 # multiple imputation
 ## https://r.iq.harvard.edu/docs/amelia/amelia.pdf

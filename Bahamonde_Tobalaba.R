@@ -640,8 +640,8 @@ p_load(dplyr, ggplot2)
 ggplot(rm.d) + 
   geom_sf(aes(fill = Economia, geometry = geometry)) +
   theme_minimal(base_size = 13) +
-  geom_point(aes(x = Longitude, y = Latitude, colour = Comuna),
-             data = airport.d) +
+  geom_point(size = 8, aes(x = Longitude, y = Latitude, colour = Comuna),
+             data = airport.d[airport.d$Comuna=="La Reina",]) +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.text.y=element_blank(),
@@ -650,8 +650,9 @@ ggplot(rm.d) +
         axis.title.y=element_blank(),
         plot.background = element_rect(fill = "transparent", color = NA), 
         panel.grid.major = element_blank(),
-        legend.position = 'bottom'
-        )
+        legend.position = 'none') +
+  #ggtitle("Santiago City: Airport Located at Wealthy Hub") +
+  labs(title = "Santiago City: Aerodrome Located at Wealthy Hub", caption = "The lighter the wealthier")
 
 
 # time series plot
@@ -678,14 +679,18 @@ formula = as.formula(Paso.d~
                        #party+
                        #IDC +
                        #mun.pop+
-                       #Covid.mi +
-                     Economia*Covid.mi
+                       #Economia + 
+                       #Covid.mi #+ 
+                       Covid.mi * Economia
+                       #Comuna
                      )
 
 logit.model <- glm(formula, data=air, family=binomial(link="logit")) 
 summary(logit.model)
 p_load("effects") 
-plot(predictorEffects(logit.model)) # Todo el modelo
+plot(predictorEffects(logit.model))
+
+plot(air$Economia,air$Covid.mi)
 
 
 # interaction fx
@@ -697,3 +702,53 @@ library(sjmisc)
 
 plot_model(logit.model, type = "pred", terms = c("Economia", "Covid.mi"))
 plot_model(logit.model, type = "pred", terms = c("Covid.mi [all]", "Economia"))
+
+
+
+###
+air2 = air
+air2 = air2[air2$Comuna=="La Reina",]
+air2$`2020-2021` = air2$Date
+air2$Restrictions = air2$Paso
+
+levels(air2$Restrictions)<-factor(c("Lockdown","Lockdown","Lockdown","Some restrictions","Some restrictions"))
+
+
+# 1
+p1 = ggplot(air2, aes(x=`2020-2021`, fill = Restrictions)) + 
+  geom_bar(width = 0.8, stat = "count") +  
+  facet_grid(scales = "free_y") + theme_bw() + 
+  ggtitle("Airport Operations Located at Wealthy Municipality: Landings and Arrivals") +
+  xlab("Date") + ylab("Landings and Arrivals\n(count)") +
+  theme(legend.position="bottom")  # none
+
+# 
+test = air2 %>% 
+  group_by(Date) %>%
+  distinct(Covid.mi, Restrictions)
+
+
+
+p2 = qplot(data = test,
+      x = Date,
+      y = Covid.mi,
+      fill= Restrictions,
+      geom = "col",
+      xlab = "Date", ylab = "Covid19\n(count)", 
+      main = "Count of Covid19: Wealthy Municipality where Airport is at") +
+  theme_bw() + theme(legend.position="bottom")
+
+library(ggpubr)
+ggarrange(p1, p2, 
+          labels = c("", ""),
+          ncol = 1, nrow = 2) 
+
+
+
+
+
+
+
+
+
+
